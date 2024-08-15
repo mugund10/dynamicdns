@@ -13,19 +13,22 @@ import (
 	"github.com/joho/godotenv"
 )
 
+
 var (
 	apiUsername, apiToken, domain, id string
 )
 
+//initializing global variables from .env
+
 func init() {
-	// Load environment variables from .env file
+	
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file:", err)
 		return
 	}
 
-	// Initialize global variables with environment variables
+	
 	domain = os.Getenv("DOMAIN")
 	id = os.Getenv("ID")
 	apiUsername = os.Getenv("APIUSERNAME")
@@ -69,7 +72,7 @@ func bodyreader(reader io.Reader) []byte {
 
 func Getdns(record *DNSRecord) {
 
-	client := &http.Client{}
+	
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -80,7 +83,7 @@ func Getdns(record *DNSRecord) {
 	req.SetBasicAuth(apiUsername, apiToken)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := client.Do(req)
+	resp, err := Request(req)
 	if err != nil {
 		fmt.Println("Error making request:", err)
 		return
@@ -101,7 +104,7 @@ func Getdns(record *DNSRecord) {
 
 func Putdns(ip string) {
 
-	// JSON payload as a byte slice
+	
 	jsonPayload := []byte(fmt.Sprintf(`{
 		"host": "homeserver",
 		"type": "A",
@@ -109,23 +112,21 @@ func Putdns(ip string) {
 		"ttl": 600
 	}`, ip))
 
-	// Create a new request using http.NewRequest
+	
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		fmt.Println("Error creating request:", err)
 		return
 	}
 
-	// Set headers
+	
 	req.SetBasicAuth(apiUsername, apiToken)
 	req.Header.Set("Content-Type", "application/json")
 
-	// Create a new HTTP client and send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	
+	resp, err := Request(req) 
 	if err != nil {
 		fmt.Println("Error sending request:", err)
-		return
 	}
 	defer resp.Body.Close()
 
@@ -140,6 +141,18 @@ func Putdns(ip string) {
 	}
 
 }
+
+func Request(req *http.Request) (*http.Response , error){
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	
+
+	return resp , nil
+}
+
 
 func main() {
 
