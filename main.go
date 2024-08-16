@@ -145,12 +145,12 @@ func ReqHeaders(req *http.Request,apiUsername, apiToken string){
 func main() {
 	
 	//using a service which returns ip
-	ip := Getip("https://mugund10.openwaves.in/ip")
+	
 
 	record := DNSRecord{}
 
 	for {
-
+		ip := Getip("https://mugund10.openwaves.in/ip")
 		Getdns(&record)
 		if ip == record.Answer {
 			// Do nothing
