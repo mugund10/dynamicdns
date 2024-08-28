@@ -13,7 +13,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//global variables 
+// global variables
 var (
 	ddns_apiusername, ddns_apiToken, ddns_domain, ddns_id, ddns_url string
 )
@@ -35,7 +35,7 @@ func init() {
 	ddns_url = fmt.Sprintf("https://api.name.com/v4/domains/%s/records/%s", ddns_domain, ddns_id)
 }
 
-// json struct for domain records
+// json struct for domain records (name.com)
 type DNSRecord struct {
 	ID         int    `json:"id"`
 	DomainName string `json:"domainName"`
@@ -46,7 +46,14 @@ type DNSRecord struct {
 	TTL        int    `json:"ttl"`
 }
 
+// json struct for ip records (aws.mugund10.top/ip)
+type Ip struct {
+	Addr string `json:"addr"`
+}
+
+//gets ip from url (mostly url = "aws.mugund10.top/ip" ) 
 func Getip(url string) string {
+	var msg Ip
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatalln(err)
@@ -54,10 +61,15 @@ func Getip(url string) string {
 	defer resp.Body.Close()
 
 	body := bodyreader(resp.Body)
-	return string(body[8 : len(body)-2])
+	err = json.Unmarshal(body, &msg)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return msg.Addr
 }
 
-//reads http response body
+// reads http response body
 func bodyreader(reader io.Reader) []byte {
 	body, err := io.ReadAll(reader)
 	if err != nil {
@@ -66,7 +78,7 @@ func bodyreader(reader io.Reader) []byte {
 	return body
 }
 
-//reads dns value of 'A' record of "homeserver" subdomain
+// reads dns value of 'A' record of "homeserver" subdomain
 func Getdns(record *DNSRecord) {
 
 	req, err := http.NewRequest("GET", ddns_url, nil)
@@ -75,7 +87,7 @@ func Getdns(record *DNSRecord) {
 		return
 	}
 
-	ReqHeaders(req ,ddns_apiusername, ddns_apiToken )
+	ReqHeaders(req, ddns_apiusername, ddns_apiToken)
 
 	resp, err := Request(req)
 	if err != nil {
@@ -94,7 +106,7 @@ func Getdns(record *DNSRecord) {
 
 }
 
-//update ip to A record of "homeserver" subdomain
+// update ip to A record of "homeserver" subdomain
 func Putdns(ip string) {
 
 	jsonPayload := []byte(fmt.Sprintf(`{
@@ -110,8 +122,7 @@ func Putdns(ip string) {
 		return
 	}
 
-	ReqHeaders(req ,ddns_apiusername, ddns_apiToken )
-	
+	ReqHeaders(req, ddns_apiusername, ddns_apiToken)
 
 	resp, err := Request(req)
 	if err != nil {
@@ -125,7 +136,7 @@ func Putdns(ip string) {
 
 }
 
-//makes http request
+// makes http request
 func Request(req *http.Request) (*http.Response, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -136,27 +147,25 @@ func Request(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
-//sets required Headers
-func ReqHeaders(req *http.Request,apiUsername, apiToken string){
+// sets required Headers
+func ReqHeaders(req *http.Request, apiUsername, apiToken string) {
 	req.SetBasicAuth(apiUsername, apiToken)
 	req.Header.Set("Content-Type", "application/json")
 }
 
 func main() {
-	
-	//using a service which returns ip
-	
 
 	record := DNSRecord{}
 
 	for {
-		ip := Getip("https://mugund10.openwaves.in/ip")
+		//using a service which returns ip
+		ip := Getip("https://aws.mugund10.top/ip")
 		Getdns(&record)
 		if ip == record.Answer {
 			// Do nothing
-			log.Println("current ip = ", ip, "old ip", record.Answer, " //not changed")
+			log.Println("[ current ip : ", ip, "]", "[ old ip : ", record.Answer, "]", " -> DNS : not changed")
 		} else {
-			log.Println("current ip = ", ip, "old ip", record.Answer, " //changed")
+			log.Println("[ current ip : ", ip, "]", "[ old ip : ", record.Answer, "]", " -> DNS : changed")
 			Putdns(ip)
 		}
 		time.Sleep(time.Minute * 5)
