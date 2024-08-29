@@ -23,10 +23,17 @@ ID="id_of_your_dns_field"
 
 ```
 
+## Installation
+
+```bash
+git clone github.com/mugund10/dynamicdns
+cd dynamicdns
+go build cmd/ddnsclient/main.go 
+./main
+```
+
 ## Status
 
-**Under Development**
-
-- The CLI tool is currently in the development phase. Functionality and features are still being implemented and refined. 
+- Cli is yet to be developed 
 
 
