@@ -6,7 +6,7 @@ The Dynamic DNS CLI (DdnsCli) is a command-line tool built in Go for managing Dy
 
 ## Workflow
 
-- Regularly checks the current IP address.
+- Regularly checks the current IP address from my [webservice](https://github.com/mugund10/whatsmyip).
 - Compares it with the existing A record in DNS.
 - Updates the record if there is a mismatch.
 - Waits 5 minutes before checking again if the IP addresses match.
